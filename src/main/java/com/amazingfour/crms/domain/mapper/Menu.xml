@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.amazingfour.crms.dao.MenuDao">
+
+    <resultMap type="Menu" id="menuResultMap">
+        <id property="menuId" column="menu_id"/>
+        <result property="menuName" column="menu_name"/>
+        <result property="url" column="menu_url"/>
+        <result property="type" column="menu_type"/>
+        <result property="pid" column="pid"/>
+
+        <collection property="roleList" ofType="com.amazingfour.crms.domain.Role" column="role_id">
+            <id property="roleId" column="role_id"/>
+            <result property="roleName" column="role_name"/>
+            <result property="roleDescript" column="role_descript"/>
+        </collection>
+    </resultMap>
+    
+    <sql id="Base_Column_List" >
+    	menu_id, pid, menu_name, menu_url, menu_type
+  	</sql>
+  
+    <sql id="limit_sql">
+    	<if test="start!=null and size!=null">  <!-- start=起始页 size=页容量 -->
+            limit #{start},#{size}
+        </if>
+ 	 </sql>
+
+    <!--查询所有菜单 -->
+    <select id="find" resultMap="menuResultMap">
+        select 
+        <include refid="Base_Column_List" />
+         from menu
+    </select>
+    
+    <!--查询所有菜单 -->
+    <select id="findByName" parameterType="Map" resultMap="menuResultMap">
+        select 
+        <include refid="Base_Column_List" />
+         from menu
+		<where>
+			<if test="menuName != null and menuName !='' " >
+		        and (
+		        LOWER(menu_name) like CONCAT("%",#{menuName,jdbcType=VARCHAR},"%") 
+		        )
+	      </if>
+		</where>
+	group by menu_id
+  	<include refid="limit_sql" />
+    </select>
+    
+     <!--查询一共有多少个角色-->
+    <select id="countByName" parameterType="com.amazingfour.crms.domain.Menu" resultType="Integer">
+        select count(1) from menu
+        <where>
+           <if test="menuName != null and menuName !='' " >
+		        and (
+		        LOWER(menu_name) like CONCAT("%",#{menuName,jdbcType=VARCHAR},"%") 
+		        )
+	      </if>
+        </where>
+    </select>
+    
+    <!--查询所有父菜单 -->
+    <select id="listAllMenu" resultMap="menuResultMap">
+        select 
+        <include refid="Base_Column_List" />
+         from menu
+    </select>
+    
+    <select id="listSubMenuByParentId" parameterType="int" resultMap="menuResultMap">
+        select 
+        <include refid="Base_Column_List" />
+         from menu where pid=#{parentId}
+    </select>
+    
+   <!--通过菜单id查询菜单信息-->
+    <select id="getMenuById" parameterType="Long" resultMap="menuResultMap">
+        select m.*
+         from menu m ,role_menu rm where m.menu_id = rm.menu_id and rm.role_id = #{roleId}
+    </select>
+    <!--查询所有子菜单-->
+    <select id="listSubMenu" parameterType="int" resultMap="menuResultMap">
+        select 
+        <include refid="Base_Column_List" />
+         from menu where pid is not null and menu_id = #{menuId}
+    </select>
+    
+    <!--新增菜单-->
+    <insert id="insertMenu" parameterType="RoleMenu" >
+        insert into role_menu (menu_id,role_id) values (#{menuId},#{roleId})
+    </insert>
+    
+    <!--修改菜单-->
+    <!--<update id="updateMenu" parameterType="RoleMenu">-->
+        <!--insert into role_menu (menu_id,role_id) values (#{menuId},#{roleId})-->
+    <!--</update>-->
+    
+    <!--删除菜单-->
+    <delete id="deleteMenu" parameterType="RoleMenu">
+        delete from role_menu where menu_id=#{menuId} and role_id=#{roleId}
+    </delete>
+    
+    <!-- 根据用ID查询permission -->
+	<select id="findPermissionByUserId" resultType="java.lang.String">
+  		select m.menu_url from menu m , role_menu rm, user_role ur 
+		where ur.user_id =#{userId,jdbcType=BIGINT} and m.menu_id = rm.menu_id and rm.role_id = ur.role_id
+	</select>
+</mapper>

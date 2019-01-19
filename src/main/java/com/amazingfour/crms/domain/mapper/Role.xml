@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.amazingfour.crms.dao.RoleDao">
+    <resultMap type="Role" id="RoleResult">
+        <id property="roleId" column="role_id"/>
+        <result property="roleName" column="role_name"/>
+        <result property="roleDescript" column="role_descript"/>
+    </resultMap>
+    
+    <sql id="limit_sql">
+    	<if test="start!=null and size!=null">  <!-- start=起始页 size=叶容量 -->
+            limit #{start},#{size}
+        </if>
+ 	 </sql>
+
+    <!-- 通过用户Id查找角色 -->
+    <select id="findByUserId" parameterType="Long" resultMap="RoleResult">
+        select * from role
+        where user_id=#{userId}
+    </select>
+
+    <!-- 根据role表中的id查询角色和菜单信息 -->
+    <select id="findMenuByRoleId" parameterType="Long"
+            resultMap="RoleResult">
+         select m.* from role r left join
+          t_user_role u on r.role_id=u.ROLE_ID where u.USER_ID=#{id}
+    </select>
+
+    <!-- 通过Id查找角色 -->
+    <select id="findById" parameterType="Long" resultMap="RoleResult">
+        select * from role
+        where role_id=#{id}
+    </select>
+
+    <!--查找所有-->
+    <select id="find" parameterType="Map" resultMap="RoleResult">
+--         select u.*,r.* from user u ,role r where r.role_id=u.role_id
+        select * from role
+        <where>
+        <if test="roleName!=null">
+            and role_name like '%${roleName}%'
+        </if>
+
+        </where>
+        <if test="start!=null and size!=null">  <!-- start=起始页 size=叶容量 -->
+            limit #{start},#{size}
+        </if>
+    </select>
+
+     <!--查询一共有多少个角色-->
+    <select id="count" parameterType="Role" resultType="Integer">
+        select count(*) from role
+        <where>
+
+            <if test="roleName!=null">
+                and role_name like '%${roleName}%'
+            </if>
+        </where>
+    </select>
+    <!--新增角色-->
+    <insert id="insert" parameterType="Role" useGeneratedKeys="true" keyProperty="roleId">
+        insert into role (role_name,role_descript) values (#{roleName},#{roleDescript})
+    </insert>
+    <!--更新用户信息-->
+    <update id="update" parameterType="Role">
+        UPDATE role set role_name=#{roleName},role_descript=#{roleDescript} WHERE role_id=#{roleId}
+    </update>
+    <!-- 检查某个账号的用户是否存在 -->
+    <select id="existRoleByName" parameterType="String"
+            resultType="Integer">
+        select count(*) from role
+        where
+        role_name=#{roleName}
+    </select>
+    <!--修改角色基本信息-->
+    <update id="updateRoleBaseInfo" parameterType="Role">
+        update role set role_name=#{roleName} where role_id=#{roleId}
+    </update>
+    <!--修改角色对应的权限信息-->
+    <!--<update id="updateRoleRights" parameterType="Role">-->
+        <!--update role set rights=#{rights} where role_id=#{roleId}-->
+    <!--</update>-->
+    <!--删除角色-->
+    <delete id="delete" parameterType="Long">
+        delete from role where role_id=#{roleId}
+    </delete>
+    
+    <select id="findRoleByUserId" resultType="java.lang.String">
+  		select r.role_name from role r,user_role ur where ur.role_id = r.role_id and ur.user_id = #{userId,jdbcType=BIGINT}
+  	</select>
+  	
+  	<!-- 权限分配的分页查询 -->
+  <select id="findRoleAndPermission" parameterType="String" resultType="com.amazingfour.crms.bo.RolePermissionAllocationBo">
+  	select r.role_id,r.role_descript,r.role_name,group_concat(m.menu_name) permissionNames,group_concat(m.menu_id)permissionIds from 
+	role r 
+	left join role_menu rm on rm.role_id = r.role_id
+	left join menu m on m.menu_id = rm.menu_id
+	<where>
+		<if test="_parameter != null and _parameter !='' " >
+	        and (
+	        LOWER(r.role_name) like CONCAT("%",#{_parameter,jdbcType=VARCHAR},"%") 
+	        )
+      </if>
+	</where>
+	group by r.role_id
+  	<include refid="limit_sql" />
+  </select>
+</mapper>
