@@ -78,22 +78,22 @@ public class UserController {
 			 */
 			SavedRequest savedRequest = WebUtils.getSavedRequest(request);
 			String url = null ;
-			String basePath = request.getContextPath();//获取basePath
-			if(null != savedRequest.getRequestUrl() && savedRequest.getRequestUrl().startsWith(basePath)){
-				url = savedRequest.getRequestUrl().replaceFirst(basePath, "");
-			}else{
-				url = savedRequest.getRequestUrl();
-			}
+//			String basePath = request.getContextPath();//获取basePath
+//			if(null != savedRequest.getRequestUrl() && savedRequest.getRequestUrl().startsWith(basePath)){
+//				url = savedRequest.getRequestUrl().replaceFirst(basePath, "");
+//			}else{
+//				url = savedRequest.getRequestUrl();
+//			}
 			/**
 			 * 我们平常用的获取上一个请求的方式，在Session不一致的情况下是获取不到的
 			 * String url = (String) request.getAttribute(WebUtils.FORWARD_REQUEST_URI_ATTRIBUTE);
 			 */
-			LoggerUtils.fmtDebug(getClass(), "获取登录之前的URL:[%s]",url);
+//			LoggerUtils.fmtDebug(getClass(), "获取登录之前的URL:[%s]",url);
 			//如果登录之前没有地址，那么就跳转到首页。
 			//如果登录之前没有地址，那么就跳转到首页。
-			if(StringUtils.isBlank(url)){
+//			if(StringUtils.isBlank(url)){
 				url = "list.htm";
-			}
+//			}
 			//设置用户信息Session
 			User token = TokenManager.getToken();
 			if(StringUtils.isBlank(token.getUserEmail()) || StringUtils.isBlank(token.getTelPhone())){
