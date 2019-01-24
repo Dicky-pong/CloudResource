@@ -124,13 +124,11 @@ $(function(){
             cache:false,
             success:function(data,status){
                 parent.layer.msg(status+":更新成功",{shade:0.5,time:2000},function(){
-                   /*  parent.window.location = "${menuList[0].url}"; */
                    window.parent.location.reload()
                 });
             },
             error:function(xhr,status,ex){
                 parent.layer.msg(status+":更新失败",{shade:0.5,time:2000},function(){
-                   /*  parent.window.location = "${menuList[0].url}"; */
                   window.parent.location.reload()
                 });
             }

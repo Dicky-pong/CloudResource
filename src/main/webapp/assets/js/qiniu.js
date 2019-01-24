@@ -285,7 +285,7 @@ function QiniuJsSDK() {
         var getUpToken = function() {
             if (!op.uptoken) {
                 var ajax = that.createAjax();
-                ajax.open('GET', "http://47.107.143.61/crms/filec/getTokenJs.htm", true);
+                ajax.open('GET', "http://www.yunziyuan/crms/filec/getTokenJs.htm", true);
                 ajax.setRequestHeader("If-Modified-Since", "0");
                 ajax.onreadystatechange = function() {
                     if (ajax.readyState === 4 && ajax.status === 200) {

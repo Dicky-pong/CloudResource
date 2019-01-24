@@ -16,7 +16,7 @@ public class ConfigToken {
     //您在七牛云创建的空间名称(bucket)
     public static final String BUCKETNAME = "mybucket";
     //七牛云下载域名
-    private static final String DOWNLOAD_URL="http://pipog1z15.bkt.clouddn.com/";
+    private static final String DOWNLOAD_URL="http://yunziyuan.club/";
 
 
     //初步生成上传下载策略

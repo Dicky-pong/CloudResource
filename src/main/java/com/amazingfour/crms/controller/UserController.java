@@ -5,13 +5,13 @@ import com.amazingfour.common.shiro.token.manager.TokenManager;
 import com.amazingfour.common.utils.ConstantUtil;
 import com.amazingfour.common.utils.Encrypt;
 import com.amazingfour.common.utils.LoggerUtils;
-import com.amazingfour.common.utils.PageUtil;
 import com.amazingfour.common.utils.ResponseUtil;
 import com.amazingfour.common.utils.StringUtils;
 import com.amazingfour.common.utils.mail.Mail;
 import com.amazingfour.common.utils.mail.MailUtils;
-import com.amazingfour.crms.domain.Menu;
-import com.amazingfour.crms.domain.Operation;
+import com.amazingfour.common.utils.FIleTranslate;
+import com.amazingfour.common.utils.qiniu.ConfigToken;
+import com.amazingfour.common.utils.qiniu.MyUploadToken;
 import com.amazingfour.crms.domain.Role;
 import com.amazingfour.crms.domain.User;
 import com.amazingfour.crms.service.MenuService;
@@ -19,6 +19,9 @@ import com.amazingfour.crms.service.OperationService;
 import com.amazingfour.crms.service.RoleService;
 import com.amazingfour.crms.service.UserService;
 
+import com.qiniu.common.QiniuException;
+import com.qiniu.http.Response;
+import com.qiniu.storage.UploadManager;
 import org.apache.shiro.authc.DisabledAccountException;
 import org.apache.shiro.web.util.SavedRequest;
 import org.apache.shiro.web.util.WebUtils;
@@ -289,24 +292,23 @@ public class UserController {
     //修改用户基本信息
     @RequestMapping(value = "/upload")
     public void upload(@RequestParam(value = "file", required = false) MultipartFile file,String userEmail,String telPhone,HttpServletRequest request,HttpServletResponse response) {
+        UploadManager uploadManager = new UploadManager();
+        ConfigToken ct = new ConfigToken();
         JSONObject obj = new JSONObject();
         User user = new User();
         user.setUserId(Long.parseLong(request.getParameter("userId")));
         //user.setUserEmail(userEmail);
         user.setTelPhone(Long.parseLong(telPhone));
-        String path = request.getSession().getServletContext().getRealPath("upload");
-        String fileName = file.getOriginalFilename();
-        //fileName += new Date().getTime()+".jpg";
-        File targetFile = new File(path, fileName);
-        if(!targetFile.exists()){
-            targetFile.mkdirs();
-        }
-        //保存
         try {
-            file.transferTo(targetFile);
-            String img = request.getContextPath()+"/upload/"+fileName;
+            File newFile = FIleTranslate.MutiFileTranstoFile(request,file);
+            // 调用put方法上传
+            Response res = uploadManager.put(newFile, null, MyUploadToken.getMyUpToken());
+            // 打印返回的信息
+            JSONObject jsonObject = JSONObject.parseObject(res.bodyString());
+            Map<String, Object> valueMap = new HashMap<String, Object>();
+            valueMap.putAll(jsonObject);
+            String img = ct.getDownloadToken(valueMap.get("key").toString());
             user.setImgUrl(img);
-
             if(userService.updateUserInifo(user)){
                 HttpSession session = request.getSession();
                 User currentUser = (User)session.getAttribute("currentUser");
@@ -318,6 +320,7 @@ public class UserController {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            LoggerUtils.fmtError(getClass(), e, "更新用户信息失败，%s。", e.getMessage());
         }
         ResponseUtil.renderJson(response, obj.toString());
     }
@@ -407,13 +410,12 @@ public class UserController {
     //注销用户
     @RequestMapping("/logout")
     @ResponseBody
-    public String logout(HttpSession session){
+    public String logout(){
     	try {
 			TokenManager.logout();
 			resultMap.put("status", 200);
 		} catch (Exception e) {
 			resultMap.put("status", 500);
-			logger.error("errorMessage:" + e.getMessage());
 			LoggerUtils.fmtError(getClass(), e, "退出出现错误，%s。", e.getMessage());
 		}
 		return JSONObject.toJSONString(resultMap);
