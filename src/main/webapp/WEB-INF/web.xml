@@ -112,6 +112,6 @@
     </session-config>
 
     <welcome-file-list>
-        <welcome-file>/user/shiroLogin.htm</welcome-file>
+        <welcome-file>/user/login.htm</welcome-file>
     </welcome-file-list>
 </web-app>

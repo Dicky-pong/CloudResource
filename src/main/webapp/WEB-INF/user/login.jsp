@@ -50,8 +50,8 @@
 		        <div class="login-wrap">
 
 					<div>
-						<span  id="login_err" class="sty_txt2" style="color: red"><font color="red">${errorMsg}${errorMsg1 }${blacklist}</font> </span>
-					</div>
+					<span  id="login_err" class="sty_txt2" style="color: red"><font color="red">${errorMsg}${errorMsg1 }${blacklist}</font> </span>
+				</div>
 
 		            <input type="text" class="form-control" id="userName" name="userName" value="${user.userName }" placeholder="请输入用户名" autofocus>
 		            <br>

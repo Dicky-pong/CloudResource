@@ -9,7 +9,6 @@
 		<meta charset="utf-8" />
 		<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
 		<script src="<%=basePath%>assets/js/jquery.js"></script>
-		<script type="text/javascript" src="https://172.16.146.142:666/FinanceTimers/web/thaw/frozenMoney" charset="gb2312"></script>
 	</head>
 	<body>
 	123

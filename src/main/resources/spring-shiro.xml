@@ -18,7 +18,7 @@
 	<!-- 会话Cookie模板 -->
 	<bean id="sessionIdCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
 		<!--cookie的name，我故意取名叫xxxxbaidu -->
-	    <constructor-arg value="v_v-s-baidu"/>
+	    <constructor-arg value="dicky_session"/>
 	    <property name="httpOnly" value="true"/>
 	    <!--cookie的有效时间 -->
 	    <property name="maxAge" value="-1"/>
@@ -32,7 +32,7 @@
 	</bean>
 	<!-- 用户信息记住我功能的相关配置 -->
 	<bean id="rememberMeCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
-	    <constructor-arg value="v_v-re-baidu"/>
+	    <constructor-arg value="dicky_rem_session"/>
 	    <property name="httpOnly" value="true"/>
 	    <!-- 配置存储rememberMe Cookie的domain为 一级域名
 	    <property name="domain" value=".itboy.net"/>
@@ -93,7 +93,7 @@
 	</bean>
 	<!-- session 校验单个用户是否多次登录 -->
 	<bean id="kickoutSessionFilter"   class="com.amazingfour.common.shiro.filter.KickoutSessionFilter">  
-	    <property name="kickoutUrl" value="/u/login.htm?kickout"/>  
+	    <property name="kickoutUrl" value="/u/login.htm?kickout"/>
 	</bean>  
 	<!-- 静态注入 jedisShiroSessionRepository-->
 	<bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
@@ -152,7 +152,8 @@
 	
 	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
 		<property name="securityManager" ref="securityManager" />
-		<property name="loginUrl" value="/user/shiroLogin.htm" />
+		<!--<property name="loginUrl" value="/user/shiroLogin.htm" />-->
+		<property name="loginUrl" value="/mobile/login/.htm" />
 		<!--	TODO 待提取	-->
 		<property name="successUrl" value="/" />
 		<property name="unauthorizedUrl" value="/open/unauthorized.htm" />

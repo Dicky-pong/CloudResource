@@ -3,7 +3,7 @@
   User: Huy
   Date: 2016-01-17
   Time: 15:23
-  以下的js是为了给弹出层页面引用的，形如主页面的不引用。(common-scripts.js不加入，有冲突)
+  以下的js是为了给弹出层页面引用的，形如主页面的不引用。(common-scripts.js不加w入，有冲突)
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <script src="assets/js/jquery.js"></script>
