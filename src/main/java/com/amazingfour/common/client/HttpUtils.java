@@ -10,7 +10,7 @@ import java.util.Map;
 
 public class HttpUtils {
 
-    public String sendGet(String url, String param) {
+    public static String sendGet(String url, String param) {
         String result = "";
         BufferedReader bufferedReader = null;
         try {
@@ -94,7 +94,7 @@ public class HttpUtils {
         return result;
     }
 
-    private URLConnection initConnection(String url, String param, String method) throws IOException {
+    private static URLConnection initConnection(String url, String param, String method) throws IOException {
         String urlNameString = url;
         if(method.equals("get")){
             if (null != param) {
@@ -117,6 +117,7 @@ public class HttpUtils {
 
     public static void main(String[] args) {
         HttpUtils httpUtils = new HttpUtils();
+
         String s = httpUtils.sendGet("http://hq.sinajs.cn/list=sz002174",null);
         String s1[] = s.split("=");
         String s2[] = s1[1].split(",");

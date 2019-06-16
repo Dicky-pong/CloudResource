@@ -11,15 +11,24 @@
 package com.amazingfour.common.quartz;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.Charset;
 import java.text.MessageFormat;
-import java.util.Date;
-import java.util.Properties;
+import java.util.*;
 
+import javax.annotation.Resource;
 import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.servlet.RequestDispatcher;
 
+import com.amazingfour.common.client.HttpUtils;
+import com.amazingfour.common.shiro.cache.JedisManager;
+import com.amazingfour.common.shiro.cache.VCache;
+import com.amazingfour.common.utils.SpringContextUtil;
+import com.amazingfour.common.utils.StringUtils;
+import com.amazingfour.crms.domain.StockMonitor;
+import com.amazingfour.crms.service.StockMonitorService;
+import org.apache.commons.collections.ListUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -27,6 +36,9 @@ import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHeader;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,27 +61,61 @@ import com.amazingfour.common.utils.mail.MailUtils;
  */
 @Component("/stockMonitor")
 @RequestMapping("/stockMonitor")
-public class StockMonitor {
-	
-	protected static Header jsonHeader = new BasicHeader(HttpHeaders.CONTENT_TYPE,ContentType.APPLICATION_JSON.toString());
-	protected static final String BASE_URI = "http://localhost/crms";
+public class StockMonitorQuartz {
 
- 
-//	@Scheduled(cron = "0 0/1 * * * ?")
+    @Resource
+    private StockMonitorService stockMonitorService;
+
+    private static final String STOCK_KEY = "STOCK_KEY";
+    protected static Header jsonHeader = new BasicHeader(HttpHeaders.CONTENT_TYPE,ContentType.APPLICATION_JSON.toString());
+
+
+	//"0 0/1 9-15 ? * MON-FRI" 周一至周五的上午9点至15点每隔一分钟触发
+//    @Scheduled(cron = "0/10 * * * * ?")
+    @Scheduled(cron = "0 0/1 9-15 ? * MON-FRI")
 	public void excute(){
-		
+
+        String url = "http://hq.sinajs.cn/list=";
+        //从数据库取要监控的股票代码，以及监控的价格
+        List<StockMonitor> stockList = stockMonitorService.findAll();
+        for (StockMonitor stockMonitor : stockList) {
+            url += stockMonitor.getStockCode();
+            //发送请求获取最新的价格
+            String s = HttpUtils.sendGet(url,null);
+            String s1[] = s.split("=");
+            String s2[] = s1[1].split(",");
+            String stockName = s2[0].substring(1,s2[0].length());
+            BigDecimal stockPrice = new BigDecimal(s2[3]);
+            //如果价格满足要求，则发送短信
+            if(stockPrice.compareTo(stockMonitor.getLowPrice())<=0 || stockPrice.compareTo(stockMonitor.getHighPrice())>=0){
+                //发送邮件
+                sendStockPriceMessage(stockName,s2[3],stockMonitor.getEmail());
+            }
+        }
+
 	}
 	
 	@RequestMapping("/turnToPage")
 	public ModelAndView turnToPage(){
 		ModelAndView mav = new ModelAndView();
-		mav.setViewName("common/stockMonitor");
+		mav.setViewName("mobile/stock/stock");
 		return mav;
 	}
+
+    @RequestMapping("/addStockRecord")
+    @ResponseBody
+    public String addStockRecord(StockMonitor stockMonitor){
+        JSONObject obj = new JSONObject();
+        stockMonitorService.insertStock(stockMonitor);
+        obj.put("mes", "发送成功!");
+        return obj.toString();
+    }
+
+
 	
 	@RequestMapping("/sendStockPriceMessage")
 	@ResponseBody
-	public String sendStockPriceMessage(String stockName,String currentPrice){
+	public String sendStockPriceMessage(String stockName,String currentPrice,String toEmail){
 		JSONObject obj = new JSONObject();
 		/*
 		 * 发邮件
@@ -90,7 +136,7 @@ public class StockMonitor {
 
 		// 创建Mail对象
         String from = prop.getProperty("from");
-        String to = prop.getProperty("to");
+        String to = toEmail;
         String subject = prop.getProperty("stockWarn");
         // MessageForm.format方法会把第一个参数中的{0},使用第二个参数来替换。
         // 例如MessageFormat.format("你好{0}, 你{1}!", "张三", "去死吧"); 返回“你好张三，你去死吧！”

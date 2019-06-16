@@ -100,6 +100,9 @@
 	    <property name="staticMethod" value="com.amazingfour.common.shiro.filter.KickoutSessionFilter.setShiroSessionRepository"/>
 	    <property name="arguments" ref="jedisShiroSessionRepository"/>
 	</bean>
+
+	<bean id="vcache" class="com.amazingfour.common.shiro.cache.VCache">
+	</bean>
 	
 	
 	
